@@ -1690,10 +1690,12 @@ COLUMN OPTIONS
 					"################################";
 				char const* short_progress_bar = "--------";
 				std::snprintf(str, sizeof(str)
-					, "%3d [%3d, %d] %s%s\x1b[K\n"
+					, "%3d [%3d, %d] \x1b[32m%s\x1b[0m%s\x1b[32m%s\x1b[0m%s\x1b[K\n"
 					, bucket, n.num_nodes, n.num_replacements
-					, progress_bar + (128 - n.num_nodes)
-					, short_progress_bar + (8 - std::min(8, n.num_replacements)));
+					, progress_bar + (128 - n.valid_id_nodes)
+					, progress_bar + (128 - (n.num_nodes - n.valid_id_nodes))
+					, short_progress_bar + (8 - std::min(8, n.valid_id_replacements))
+					, short_progress_bar + (8 - std::min(8, n.num_replacements - n.valid_id_replacements)));
 				out += str;
 				pos += 1;
 				++bucket;

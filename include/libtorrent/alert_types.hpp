@@ -96,7 +96,9 @@ namespace libtorrent {
 		// the total number of nodes and replacement nodes
 		// in the routing table
 		int num_nodes;
+		int valid_id_nodes;
 		int num_replacements;
+		int valid_id_replacements;
 
 		// number of seconds since last activity
 		int last_active;

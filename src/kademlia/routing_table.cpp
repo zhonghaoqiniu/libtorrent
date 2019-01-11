@@ -134,7 +134,12 @@ void routing_table::status(std::vector<dht_routing_bucket>& s) const
 	{
 		dht_routing_bucket b;
 		b.num_nodes = int(i.live_nodes.size());
+		auto const is_verified = [](node_entry const& e){ return e.verified; };
+		b.valid_id_nodes = std::count_if(i.live_nodes.begin(), i.live_nodes.end(), is_verified);
 		b.num_replacements = int(i.replacements.size());
+		b.valid_id_replacements = std::count_if(i.replacements.begin(), i.replacements.end(), is_verified);
+		TORRENT_ASSERT(b.num_replacements >= b.valid_id_replacements);
+		TORRENT_ASSERT(b.num_nodes >= b.valid_id_nodes);
 		s.push_back(b);
 	}
 }
@@ -626,6 +631,7 @@ ip_ok:
 	// split the last bucket
 	bool const can_split = (std::next(i) == m_buckets.end()
 		&& m_buckets.size() < 159)
+		&& e.verified
 		&& e.confirmed()
 		&& (i == m_buckets.begin() || std::prev(i)->live_nodes.size() > 1);
 
@@ -714,7 +720,7 @@ ip_ok:
 		{
 			j = *std::max_element(nodes.begin(), nodes.end()
 				, [](bucket_t::iterator lhs, bucket_t::iterator rhs)
-				{ return lhs->rtt < rhs->rtt; });
+				{ return *lhs < *rhs; });
 		}
 		else
 		{
@@ -760,7 +766,7 @@ ip_ok:
 
 				auto k = std::max_element(nodes.begin(), nodes.end()
 					, [](bucket_t::iterator lhs, bucket_t::iterator rhs)
-					{ return lhs->rtt < rhs->rtt; });
+					{ return *lhs < *rhs; });
 
 				// in this case, we would really rather replace the node even if
 				// the new node has higher RTT, because it fills a new prefix that we otherwise
@@ -772,11 +778,11 @@ ip_ok:
 			{
 				j = std::max_element(b.begin(), b.end()
 					, [](node_entry const& lhs, node_entry const& rhs)
-					{ return lhs.rtt < rhs.rtt; });
+					{ return lhs < rhs; });
 			}
 		}
 
-		if (j != b.end() && (force_replace || j->rtt > e.rtt))
+		if (j != b.end() && (force_replace || e < *j))
 		{
 			m_ips.erase(j->addr());
 			*j = e;
@@ -1027,7 +1033,7 @@ void routing_table::heard_about(node_id const& id, udp::endpoint const& ep)
 // top of its bucket. the return value indicates if the table needs a refresh.
 // if true, the node should refresh the table (i.e. do a find_node on its own
 // id)
-bool routing_table::node_seen(node_id const& id, udp::endpoint const& ep, int rtt)
+bool routing_table::node_seen(node_id const& id, udp::endpoint const& ep, int const rtt)
 {
 	return verify_node_address(m_settings, id, ep.address()) && add_node(node_entry(id, ep, rtt, true));
 }
