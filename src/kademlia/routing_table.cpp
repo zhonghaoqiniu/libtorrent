@@ -135,9 +135,9 @@ void routing_table::status(std::vector<dht_routing_bucket>& s) const
 		dht_routing_bucket b;
 		b.num_nodes = int(i.live_nodes.size());
 		auto const is_verified = [](node_entry const& e){ return e.verified; };
-		b.valid_id_nodes = std::count_if(i.live_nodes.begin(), i.live_nodes.end(), is_verified);
+		b.valid_id_nodes = static_cast<int>(std::count_if(i.live_nodes.begin(), i.live_nodes.end(), is_verified));
 		b.num_replacements = int(i.replacements.size());
-		b.valid_id_replacements = std::count_if(i.replacements.begin(), i.replacements.end(), is_verified);
+		b.valid_id_replacements = static_cast<int>(std::count_if(i.replacements.begin(), i.replacements.end(), is_verified));
 		TORRENT_ASSERT(b.num_replacements >= b.valid_id_replacements);
 		TORRENT_ASSERT(b.num_nodes >= b.valid_id_nodes);
 		s.push_back(b);
@@ -764,9 +764,7 @@ ip_ok:
 				// from these nodes, pick the one with the highest RTT
 				// and replace it
 
-				auto k = std::max_element(nodes.begin(), nodes.end()
-					, [](bucket_t::iterator lhs, bucket_t::iterator rhs)
-					{ return *lhs < *rhs; });
+				auto k = std::max_element(nodes.begin(), nodes.end());
 
 				// in this case, we would really rather replace the node even if
 				// the new node has higher RTT, because it fills a new prefix that we otherwise
