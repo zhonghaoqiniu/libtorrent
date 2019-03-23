@@ -380,7 +380,8 @@ namespace {
 		// calculations of the size of the merkle tree (which is all 'int'
 		// indices)
 		if (file_size < 0
-			|| (file_size / default_block_size) >= std::numeric_limits<int>::max() / 2)
+			|| (file_size / default_block_size) >= std::numeric_limits<int>::max() / 2
+			|| file_size > file_storage::max_file_size)
 		{
 			ec = errors::torrent_invalid_length;
 			return false;
@@ -444,7 +445,8 @@ namespace {
 		// calculations of the size of the merkle tree (which is all 'int'
 		// indices)
 		if (file_size < 0
-			|| (file_size / default_block_size) >= std::numeric_limits<int>::max() / 2)
+			|| (file_size / default_block_size) >= std::numeric_limits<int>::max() / 2
+			|| file_size > file_storage::max_file_size)
 		{
 			ec = errors::torrent_invalid_length;
 			return false;

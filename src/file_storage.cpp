@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/numeric_cast.hpp"
 #include "libtorrent/disk_interface.hpp" // for default_block_size
 #include "libtorrent/aux_/merkle.hpp"
+#include "libtorrent/aux_/throw.hpp"
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 #include <boost/crc.hpp>
@@ -628,6 +629,25 @@ namespace {
 	{
 		TORRENT_ASSERT_PRECOND(file_size >= 0);
 		TORRENT_ASSERT_PRECOND(!is_complete(filename));
+
+		if (file_size > max_file_size)
+		{
+			aux::throw_ex<system_error>(boost::system::errc::file_too_large, system_category());
+		}
+
+		if (max_file_size - m_total_size < file_size)
+			aux::throw_ex<system_error>(errors::torrent_invalid_length, libtorrent_category());
+
+		if (!filename.empty())
+		{
+			if (filename.size() >= (1 << 12))
+				aux::throw_ex<system_error>(boost::system::errc::filename_too_long, system_category());
+		}
+		else if (lt::filename(path).size() >= (1 << 12))
+		{
+			aux::throw_ex<system_error>(boost::system::errc::filename_too_long, system_category());
+		}
+
 		if (!has_parent_path(path))
 		{
 			// you have already added at least one file with a
@@ -651,6 +671,9 @@ namespace {
 			if (int(pad_size) != piece_length())
 			{
 				auto const offset = m_files.front().offset + m_files.front().size;
+				if (offset > max_file_size)
+					aux::throw_ex<system_error>(errors::torrent_invalid_length, libtorrent_category());
+
 				m_files.emplace_back();
 				// e is invalid from here down!
 				auto& pad_file = m_files.back();
