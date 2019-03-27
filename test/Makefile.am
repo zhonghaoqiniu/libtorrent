@@ -118,6 +118,7 @@ TEST_TORRENTS = \
   url_seed_multi.torrent \
   url_seed_multi_space.torrent \
   url_seed_multi_space_nolist.torrent \
+  url_seed_multi_single_file.torrent \
   whitespace_url.torrent
 
 MUTABLE_TEST_TORRENTS = \
